@@ -33,4 +33,10 @@ void gApp::updateBullets(float deltatime, gEntity entity, gTransformComponent& c
 
 # Differences
 
-- Bottom left is the origin instead of top left, this means that the y axis is inverted. y=0 is bottom, y>=0 is top.
+- Y-axis is inverted for sprites. Bottom left is the origin instead of top left. y=0 is bottom, y>=0 is top.
+
+# Requirements
+
+- You need an up-to-date version of the GlistEngine.
+- entt library is included in the vendor folder. You need to make sure to clone the repository recursively.
+- Projects using this plugin need to use C++17 or higher. C++14 is not supported by the entt library.
