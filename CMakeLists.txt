@@ -13,7 +13,7 @@ list(APPEND PLUGIN_SRCS
 			${PLUGIN_DIR}/src/gScene.cpp
 			${PLUGIN_DIR}/src/gEntity.cpp
 			${PLUGIN_DIR}/src/gUUID.cpp
-#			${PLUGIN_DIR}/src/gComponentBase.cpp
+			${PLUGIN_DIR}/src/gComponents.cpp
 )
 
 list(APPEND PLUGIN_INCLUDES

@@ -6,10 +6,13 @@
 #define GIPECS_GCOMPONENTS_H
 
 #include "entt/entt.hpp"
-#include "gUUID.h"
+#include "gCamera.h"
 #include "gImage.h"
-#include <string>
+#include "gModel.h"
+#include "gUUID.h"
+
 #include <glm/glm.hpp>
+#include <string>
 
 struct gComponentBase {
 	virtual ~gComponentBase() = default;
@@ -91,6 +94,22 @@ struct gSpriteComponent : public gComponentBase {
 	gSpriteComponent(const gSpriteComponent&) = default;
 
 	gImage image;
+};
+
+void loadSpriteComponent(gSpriteComponent& component, const std::string& imagepath);
+
+struct gCameraComponent : public gComponentBase {
+	gCameraComponent() = default;
+	gCameraComponent(const gCameraComponent&) = default;
+
+	gCamera camera;
+};
+
+struct gModelComponent : public gComponentBase {
+	gModelComponent() = default;
+	gModelComponent(const gModelComponent&) = default;
+
+	gModel model;
 };
 
 #endif//GIPECS_GCOMPONENTS_H

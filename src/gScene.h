@@ -85,27 +85,29 @@ public:
 
 	template<typename Entity, typename... Components, typename Func>
 	void bindSystem(gSystem type, Func func) {
-		// Create a TypedSystemFunction with explicit component types
-		TypedSystemFunction<Entity, gScene, Components...> systemfunc(func);
-
-		if (type == gSystem::UPDATE) {
-			updatefilters.emplace_back([systemfunc, this](entt::entity entity, entt::registry& reg) mutable {
-				return systemfunc.hasComponents(entity, reg);
-			});
-			updatesystems.emplace_back([systemfunc, this](float dt, entt::entity entity, entt::registry& reg) mutable {
-				systemfunc(this, dt, Entity{entity, this}, reg);
-			});
-		} else if (type == gSystem::DRAW) {
-			drawfilters.emplace_back([systemfunc, this](entt::entity entity, entt::registry& reg) mutable {
-				return systemfunc.hasComponents(entity, reg);
-			});
-			drawsystems.emplace_back([systemfunc, this](float dt, entt::entity entity, entt::registry& reg) mutable {
-				systemfunc(this, dt, Entity{entity, this}, reg);
-			});
-		}
+		systems[type].push_back([this, func](float deltatime) {
+					for (auto handle : registry.view<Components...>()) {
+						Entity entity{handle, this};
+						func(deltatime, entity, registry.get<Components>(handle)...);
+					}
+				});
 	}
 
-	void tick(float deltatime);
+	template<typename Entity, typename... Components, typename Func>
+	void bindSystem(gSystem type, const std::string& tag, Func func) {
+		systems[type].push_back([this, func, tag](float deltatime) {
+					for (auto handle : registry.view<Components...>()) {
+						Entity entity{handle, this};
+						if (entity.getName() != tag) {
+							continue;
+						}
+						func(deltatime, entity, registry.get<Components>(handle)...);
+					}
+				});
+	}
+
+	void setCamera(gCamera* camera);
+	void update(float deltatime);
 	void draw(float deltatime);
 
 private:
@@ -126,10 +128,10 @@ private:
 	bool firstupdate = true;
 	std::vector<entt::entity> scenehierarchy;
 	std::vector<entt::entity> destroyqueue;
-	std::vector<std::function<void(float, entt::entity, entt::registry&)>> updatesystems;
-	std::vector<std::function<void(float, entt::entity, entt::registry&)>> drawsystems;
-	std::vector<std::function<bool(entt::entity, entt::registry&)>> updatefilters;
-	std::vector<std::function<bool(entt::entity, entt::registry&)>> drawfilters;
+
+	gCamera* camera = nullptr;
+
+	std::unordered_map<gSystem, std::vector<std::function<void(float)>>> systems;
 };
 
 

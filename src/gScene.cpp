@@ -6,6 +6,7 @@
 #include "gEntity.h"
 
 gSceneCanvas::gSceneCanvas(gBaseApp* app) : gBaseCanvas(app) {
+	scene = std::make_unique<gScene>();
 }
 
 gSceneCanvas::~gSceneCanvas() {}
@@ -17,7 +18,8 @@ void gSceneCanvas::setup() {
 void gSceneCanvas::update() {
 	deltatime = appmanager->getElapsedTime();
 	if (scene) {
-		scene->tick(deltatime);
+		scene->update(deltatime);
+		scene->processDestroyQueue();
 	}
 }
 
@@ -129,31 +131,45 @@ void gScene::processDestroyQueue() {
 	destroyqueue.clear();
 }
 
-void gScene::tick(float deltatime) {
-	auto view = registry.view<entt::entity>();
+void gScene::setCamera(gCamera* camera) {
+	this->camera = camera;
+}
 
-	for (size_t i = 0; i < updatesystems.size(); ++i) {
-		for (auto handle : view) {
-			gEntity entity{handle, this};
-			if (updatefilters[i](entity, registry)) {
-				updatesystems[i](deltatime, entity, registry);
-			}
-		}
+void gScene::update(float deltatime) {
+	for (auto&& fn : systems[gSystem::UPDATE]) {
+		fn(deltatime);
 	}
 }
 
 void gScene::draw(float deltatime) {
 	renderer->clear();
 
-	auto view = registry.view<entt::entity>();
+	auto it = registry.view<gCameraComponent, gTransformComponent>();
+	if (it) {
+		entt::entity entity = it.front();
+		gCameraComponent& component = it.get<gCameraComponent>(entity);
+		gTransformComponent& transform = it.get<gTransformComponent>(entity);
+		component.camera.position = transform.position;
+		component.camera.scalevec = transform.scale;
+		component.camera.orientation = transform.transformmatrix;
+		component.camera.localtransformationmatrix = transform.transformmatrix;
+		component.camera.lookposition = transform.position;
+		component.camera.lookorientation = transform.transformmatrix;
+		component.camera.lookscalevec = transform.scale;
+		component.camera.locallookmatrix = transform.transformmatrix;
+		setCamera(&component.camera);
+	}
 
-	for (size_t i = 0; i < drawsystems.size(); ++i) {
-		for (auto handle : view) {
-			gEntity entity{handle, this};
-			if (drawfilters[i](entity, registry)) {
-				drawsystems[i](deltatime, entity, registry);
-			}
-		}
+	if (camera) {
+		camera->begin();
+	}
+
+	for (auto&& fn : systems[gSystem::DRAW]) {
+		fn(deltatime);
+	}
+
+	if (camera) {
+		camera->end();
 	}
 
 	renderpassno = renderpassnum - 1;
