@@ -34,7 +34,7 @@ void gSceneCanvas::onEvent(gEvent& event) {
 }
 
 gScene::gScene() {
-	bindSystem<gEntity, gTransformComponent>(gSystem::TICK, G_BIND_FUNCTION(updateTransform));
+	bindSystem<gEntity, gTransformComponent>(gSystem::UPDATE, G_BIND_FUNCTION(updateTransform));
 	bindSystem<gEntity, gTransformComponent, gSpriteComponent>(gSystem::DRAW, G_BIND_FUNCTION(renderSprite));
 }
 
@@ -132,11 +132,11 @@ void gScene::processDestroyQueue() {
 void gScene::tick(float deltatime) {
 	auto view = registry.view<entt::entity>();
 
-	for (size_t i = 0; i < ticksystems.size(); ++i) {
+	for (size_t i = 0; i < updatesystems.size(); ++i) {
 		for (auto handle : view) {
 			gEntity entity{handle, this};
-			if (tickfilters[i](entity, registry)) {
-				ticksystems[i](deltatime, entity, registry);
+			if (updatefilters[i](entity, registry)) {
+				updatesystems[i](deltatime, entity, registry);
 			}
 		}
 	}

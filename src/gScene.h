@@ -11,7 +11,7 @@
 #include "gSystem.h"
 
 enum class gSystem {
-	TICK,
+	UPDATE,
 	DRAW
 };
 
@@ -88,11 +88,11 @@ public:
 		// Create a TypedSystemFunction with explicit component types
 		TypedSystemFunction<Entity, gScene, Components...> systemfunc(func);
 
-		if (type == gSystem::TICK) {
-			tickfilters.emplace_back([systemfunc, this](entt::entity entity, entt::registry& reg) mutable {
+		if (type == gSystem::UPDATE) {
+			updatefilters.emplace_back([systemfunc, this](entt::entity entity, entt::registry& reg) mutable {
 				return systemfunc.hasComponents(entity, reg);
 			});
-			ticksystems.emplace_back([systemfunc, this](float dt, entt::entity entity, entt::registry& reg) mutable {
+			updatesystems.emplace_back([systemfunc, this](float dt, entt::entity entity, entt::registry& reg) mutable {
 				systemfunc(this, dt, Entity{entity, this}, reg);
 			});
 		} else if (type == gSystem::DRAW) {
@@ -126,9 +126,9 @@ private:
 	bool firstupdate = true;
 	std::vector<entt::entity> scenehierarchy;
 	std::vector<entt::entity> destroyqueue;
-	std::vector<std::function<void(float, entt::entity, entt::registry&)>> ticksystems;
+	std::vector<std::function<void(float, entt::entity, entt::registry&)>> updatesystems;
 	std::vector<std::function<void(float, entt::entity, entt::registry&)>> drawsystems;
-	std::vector<std::function<bool(entt::entity, entt::registry&)>> tickfilters;
+	std::vector<std::function<bool(entt::entity, entt::registry&)>> updatefilters;
 	std::vector<std::function<bool(entt::entity, entt::registry&)>> drawfilters;
 };
 
