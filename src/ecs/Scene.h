@@ -5,36 +5,44 @@
 #ifndef GIPECS_GSCENE_H
 #define GIPECS_GSCENE_H
 
-#include "entt/entt.hpp"
+#include "System.h"
+#include "ecs/Components.h"
 #include "gBaseCanvas.h"
-#include "gComponents.h"
-#include "gSystem.h"
 
-enum class gSystem {
+namespace gecs {
+enum class SystemType {
 	UPDATE,
-	DRAW
+	DRAW3D,
+	DRAW2D
 };
 
-class gEntity;
+class Entity;
 
-class gScene : gRenderObject{
+class Scene : gRenderObject {
 public:
-	gScene();
-	~gScene();
+	Scene();
+	~Scene();
 
-	gEntity createEntity(const std::string& name = std::string());
-	gEntity createEntityWithUUID(gUUID uuid,
+	Entity createEntity(const std::string& name = std::string());
+	Entity createEntityWithUUID(gUUID uuid,
 								 const std::string& name = std::string());
-	void removeEntity(gEntity entity);
+	void removeEntity(Entity entity);
 
 	void onUpdate(float_t deltatime);
 	void onEvent(gEvent& event);
 
 	template<typename T>
-	void onRemoveComponent(entt::entity entity, T& component) {}
-
-	template<typename T>
 	void onAddComponent(entt::entity entity, T& component) {}
+	template<typename T>
+	void onRemoveComponent(entt::entity entity, T& component) {}
+	template<>
+	void onAddComponent(entt::entity entity, LightAmbientComponent& component);
+	template<>
+	void onRemoveComponent(entt::entity entity, LightAmbientComponent& component);
+	template<>
+	void onAddComponent(entt::entity entity, CameraComponent& component);
+	template<>
+	void onAddComponent(entt::entity entity, TransformComponent& component);
 
 	template<typename T, typename... Args>
 	T& addComponent(entt::entity handle, Args&&... args) {
@@ -84,7 +92,7 @@ public:
 	void processDestroyQueue();
 
 	template<typename Entity, typename... Components, typename Func>
-	void bindSystem(gSystem type, Func func) {
+	void bindSystem(SystemType type, Func func) {
 		systems[type].push_back([this, func](float deltatime) {
 					for (auto handle : registry.view<Components...>()) {
 						Entity entity{handle, this};
@@ -94,7 +102,7 @@ public:
 	}
 
 	template<typename Entity, typename... Components, typename Func>
-	void bindSystem(gSystem type, const std::string& tag, Func func) {
+	void bindSystem(SystemType type, const std::string& tag, Func func) {
 		systems[type].push_back([this, func, tag](float deltatime) {
 					for (auto handle : registry.view<Components...>()) {
 						Entity entity{handle, this};
@@ -106,22 +114,25 @@ public:
 				});
 	}
 
-	void setCamera(gCamera* camera);
 	void update(float deltatime);
 	void draw(float deltatime);
 
 private:
 	bool onWindowResizeEvent(gWindowResizeEvent& event);
-	glm::mat4 makeLocal(const gTransformComponent& transform);
+	glm::mat4 makeLocal(const TransformComponent& transform);
 	glm::mat4 getWorldMatrix(entt::entity entity);
 	void updateMatrices(entt::entity entity);
 	void destroyEntity(entt::entity handle);
 
-	void updateTransform(float deltatime, gEntity entity, gTransformComponent& transform);
-	void renderSprite(float deltatime, gEntity entity, gTransformComponent& transform, gSpriteComponent& sprite);
+	void updateTransform(float deltatime, Entity entity, TransformComponent& transform);
+	void updateCamera(float deltatime, Entity entity, TransformComponent& transform, CameraComponent& camera);
+	void updateModel(float deltatime, Entity entity, TransformComponent& transform, ModelComponent& model);
+	void updateLight(float deltatime, Entity entity, TransformComponent& transform, LightAmbientComponent& light);
+	void renderSprite(float deltatime, Entity entity, TransformComponent& transform, SpriteComponent& sprite);
+	void renderModel(float deltatime, Entity entity, TransformComponent& transform, ModelComponent& model);
 
 private:
-	friend class gSceneCanvas;
+	friend class SceneCanvas;
 
 	std::unordered_map<gUUID, entt::entity> entities;
 	entt::registry registry;
@@ -129,32 +140,32 @@ private:
 	std::vector<entt::entity> scenehierarchy;
 	std::vector<entt::entity> destroyqueue;
 
-	gCamera* camera = nullptr;
-
-	std::unordered_map<gSystem, std::vector<std::function<void(float)>>> systems;
+	std::unordered_map<SystemType, std::vector<std::function<void(float)>>> systems;
 };
 
-
-class gSceneCanvas : public gBaseCanvas {
+class SceneCanvas : public gBaseCanvas {
 public:
-	gSceneCanvas(gBaseApp*);
-	~gSceneCanvas() override;
+	SceneCanvas(gBaseApp*);
+	~SceneCanvas() override;
 	void setup() override;
 	void update() override;
 	void draw() override;
 	void onEvent(gEvent& event) override;
 
-	void setScene(std::unique_ptr<gScene> scene) {
+	void setScene(std::unique_ptr<Scene> scene) {
 		this->scene = std::move(scene);
 	}
 
-	gScene* getScene() {
+	Scene* getScene() {
 		return scene.get();
 	}
 
 private:
-	std::unique_ptr<gScene> scene;
+	std::unique_ptr<Scene> scene;
 	float deltatime;
 };
+
+}
+
 
 #endif// GIPECS_GSCENE_H

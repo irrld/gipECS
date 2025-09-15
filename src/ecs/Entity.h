@@ -5,13 +5,15 @@
 #ifndef GIPECS_GENTITY_H
 #define GIPECS_GENTITY_H
 
-#include "gComponents.h"
-#include "gScene.h"
+#include "Scene.h"
+#include "ecs/Components.h"
 
-class gEntity {
+namespace gecs {
+
+class Entity {
 public:
-	gEntity(entt::entity handle, gScene* scene);
-	~gEntity();
+	Entity(entt::entity handle, Scene* scene);
+	~Entity();
 
 	template<typename T, typename... Args>
 	T& addComponent(Args&&... args) {
@@ -40,32 +42,33 @@ public:
 	operator uint32_t() const { return (uint32_t) entityhandle; }
 
 	gUUID getUUID() {
-		return getComponent<gIdComponent>().Id;
+		return getComponent<IdComponent>().id;
 	}
 
 	const std::string& getName() {
-		return getComponent<gTagComponent>().tag;
+		return getComponent<TagComponent>().tag;
 	}
-	gEntity getParent() const { return {parenthandle, scene}; }
+	Entity getParent() const { return {parenthandle, scene}; }
 	entt::entity getParentHandle() const { return parenthandle; }
 	const std::vector<entt::entity>* getChildHandles() const { return childhandles; }
 
-	bool operator==(const gEntity& other) const {
+	bool operator==(const Entity& other) const {
 		return entityhandle == other.entityhandle && scene == other.scene;
 	}
 
-	bool operator!=(const gEntity& other) const { return !(*this == other); }
+	bool operator!=(const Entity& other) const { return !(*this == other); }
 
 	entt::entity getHandle() const { return entityhandle; }
 
-	gScene* getScene() const { return scene; }
+	Scene* getScene() const { return scene; }
 
 private:
 	entt::entity entityhandle;
-	gScene* scene;
+	Scene* scene;
 	entt::entity parenthandle;
 	std::vector<entt::entity>* childhandles;
 };
 
+}
 
 #endif//GIPECS_GENTITY_H

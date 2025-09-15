@@ -9,6 +9,8 @@
 #include <type_traits>
 #include "entt/entt.hpp"
 
+namespace gecs {
+
 /**
  * @brief Type trait to detect component references
  *
@@ -74,6 +76,7 @@ auto makeSystemFunction(Func&& f) {
     return TypedSystemFunction<Components...>(std::forward<Func>(f));
 }
 
+}
 /**
  * @brief Macro for binding member functions to systems with explicit component types
  *

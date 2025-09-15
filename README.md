@@ -1,3 +1,10 @@
+# gipECS
+gipECS or gecs for short is a plugin for the GlistEngine that provides an Entity Component System.
+
+All functions and classes are in the namespace gecs, this is to provide a clear distinction between other code. We are defining some stuff that is very likely to exist in other places, by using a namespace we can guarantee that we are completely unique and developers can chose to add `using namespace gecs;` in case there is no conflict.
+
+# Examples
+
 I'll be adding more detailed examples, but here you go:
 
 ```c++
@@ -30,6 +37,8 @@ void gApp::updateBullets(float deltatime, gEntity entity, gTransformComponent& c
 }
 
 ```
+
+No other code is required to get the sprites to draw on the screen.
 
 # Differences
 

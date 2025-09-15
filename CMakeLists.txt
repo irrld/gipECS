@@ -10,10 +10,10 @@ set(VENDOR_DIR ${PLUGIN_DIR}/vendor)
 
 
 list(APPEND PLUGIN_SRCS
-			${PLUGIN_DIR}/src/gScene.cpp
-			${PLUGIN_DIR}/src/gEntity.cpp
-			${PLUGIN_DIR}/src/gUUID.cpp
-			${PLUGIN_DIR}/src/gComponents.cpp
+			${PLUGIN_DIR}/src/ecs/Scene.cpp
+			${PLUGIN_DIR}/src/ecs/Entity.cpp
+			${PLUGIN_DIR}/src/ecs/Components.cpp
+			${PLUGIN_DIR}/src/ecs/Loader.cpp
 )
 
 list(APPEND PLUGIN_INCLUDES
