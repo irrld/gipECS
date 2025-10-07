@@ -17,6 +17,7 @@ list(APPEND PLUGIN_SRCS
 			${PLUGIN_DIR}/src/Behavior.cpp
 			${PLUGIN_DIR}/src/InputManager.cpp
 			${PLUGIN_DIR}/src/CameraBehavior.cpp
+			${PLUGIN_DIR}/src/AssetsManager.cpp
 )
 
 list(APPEND PLUGIN_INCLUDES
