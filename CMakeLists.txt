@@ -10,14 +10,17 @@ set(VENDOR_DIR ${PLUGIN_DIR}/vendor)
 
 
 list(APPEND PLUGIN_SRCS
-			${PLUGIN_DIR}/src/ecs/Scene.cpp
-			${PLUGIN_DIR}/src/ecs/Entity.cpp
-			${PLUGIN_DIR}/src/ecs/Components.cpp
-			${PLUGIN_DIR}/src/ecs/Loader.cpp
+			${PLUGIN_DIR}/src/Scene.cpp
+			${PLUGIN_DIR}/src/Entity.cpp
+			${PLUGIN_DIR}/src/Components.cpp
+			${PLUGIN_DIR}/src/Loader.cpp
+			${PLUGIN_DIR}/src/Behavior.cpp
+			${PLUGIN_DIR}/src/InputManager.cpp
+			${PLUGIN_DIR}/src/CameraBehavior.cpp
 )
 
 list(APPEND PLUGIN_INCLUDES
-		${PLUGIN_DIR}/src
+		${PLUGIN_DIR}/include
 		${VENDOR_DIR}/entt/single_include
 )
 

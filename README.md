@@ -8,34 +8,69 @@ All functions and classes are in the namespace gecs, this is to provide a clear 
 I'll be adding more detailed examples, but here you go:
 
 ```c++
+using namespace gecs;
+
 void gApp::setup() {
+	ismuted = false;
 	appmanager->setTargetFramerate(100000);
 
-	gSceneCanvas* canvas = new gSceneCanvas(this);
-	canvas->setScene(std::make_unique<gScene>());
+	SceneCanvas* canvas = new SceneCanvas(this);
 	appmanager->setCurrentCanvas(canvas);
-	gScene* scene = canvas->getScene();
+
+	// An empty scene is automatically created.
+	Scene* scene = canvas->getScene();
 	{
-		gEntity entity = scene->createEntity("Bullet");
-		gSpriteComponent& sprite = entity.addComponent<gSpriteComponent>();
-		loadSpriteComponent(sprite, "ai_bullet.png");
+		// Create an entity named "Bullet"
+		Entity entity = scene->createEntity("Bullet");
+		SpriteComponent& sprite = entity.addComponent<SpriteComponent>();
+		// Load the image from assets/images/ai_bullet.png
+		Loader::loadSpriteComponent(sprite, "ai_bullet.png");
 	}
 	{
-		gEntity entity = scene->createEntity("Map");
-		gSpriteComponent& sprite = entity.addComponent<gSpriteComponent>();
-		loadSpriteComponent(sprite, "menu_background2.png");
-		gTransformComponent& transform = entity.addComponent<gTransformComponent>();
-		transform.scale = glm::vec3(0.5f, 0.5f, 1.0f);
+		// Create an entity named "Map"
+		Entity entity = scene->createEntity("Map");
+		SpriteComponent& sprite = entity.addComponent<SpriteComponent>();
+		// Load the image from assets/images/menu_background2.png
+		Loader::loadSpriteComponent(sprite, "menu_background2.png");
 	}
-	scene->bindSystem<gEntity, gTransformComponent>(gSystem::UPDATE, "Bullet", G_BIND_FUNCTION(updateBullets));
+	{
+		Entity entity = scene->createEntity("Camera");
+		CameraComponent& cam = entity.addComponent<CameraComponent>();
+		cam.isenabled = true;
+		TransformComponent& transform = entity.getComponent<TransformComponent>();
+		transform.setPosition(0.2f, 0, 0.5f);
+		transform.lookAt(0, 0, 0);
+		BehaviorsComponent& behaviors = entity.addComponent<BehaviorsComponent>();
+		behaviors.addBehavior<CameraBehavior>();
+	}
+	{
+		Entity entity = scene->createEntity("Light");
+		LightAmbientComponent& light = entity.addComponent<LightAmbientComponent>();
+		light.isenabled = true;
+	}
+	{
+		Entity entity = scene->createEntity("Solider");
+		ModelComponent& model = entity.addComponent<ModelComponent>();
+		// Load the image from assets/images/menu_background2.png
+		Loader::loadModelComponent(model, "link/untitled.fbx");
+		TransformComponent& transform = entity.getComponent<TransformComponent>();
+		transform.setScale(0.001f, 0.001f, 0.001f);
+		transform.rotate(180, 0, 0);
+	}
+	// Bind a system, which runs on each update cycle. Only runs on entities which are named "Bullet"
+	scene->bindSystem<Entity, TransformComponent>(SystemType::UPDATE, "Bullet", G_BIND_FUNCTION(updateBullet));
+	// Bind a system, which runs on each update cycle. Only runs on entities which are named "Solider"
+	scene->bindSystem<Entity, ModelComponent>(SystemType::UPDATE, "Solider", G_BIND_FUNCTION(moveModel));
 }
 
-// Only called if the name of the entity is "Bullet" and has the gTransformComponent.
-void gApp::updateBullets(float deltatime, gEntity entity, gTransformComponent& component) {
-	gLogi("gApp") << "updateBullets " << (uint64_t)entity.getHandle();
-	component.position.y += 10 * deltatime;
+void gApp::updateBullet(float deltatime, Entity entity, TransformComponent& transform) {
+	transform.move(10 * deltatime, 0.0f, 0.0f);
 }
 
+void gApp::moveModel(float deltatime, Entity entity, ModelComponent& component) {
+	TransformComponent& transform = entity.getComponent<TransformComponent>();
+	transform.move(0, 0, deltatime * -0.1f);
+}
 ```
 
 No other code is required to get the sprites to draw on the screen.
