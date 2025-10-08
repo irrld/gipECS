@@ -26,27 +26,52 @@ SpriteAsset::SpriteAsset(const std::string& assetpath)
 }*/
 
 void SpriteAsset::applyTo(gImage& image) {
-	if (ishdr) {
-		image.setDataHDR(static_cast<float*>(data), width, height, channels, false, false);
+	if (data.ishdr) {
+		image.setDataHDR(static_cast<float*>(data.image), data.width, data.height, data.channels, false, false);
 	} else {
-		image.setData(static_cast<unsigned char*>(data), width, height, channels, false, false);
+		image.setData(static_cast<unsigned char*>(data.image), data.width, data.height, data.channels, false, false);
 	}
+}
+
+void SkyboxAsset::applyTo(gSkybox& skybox) {
+	std::array<int, 6> widths{};
+	std::array<int, 6> heights{};
+	std::array<void*, 6> rawdata{};
+	std::array<bool, 6> ishdr{};
+	for (size_t i = 0; i < 6; i++) {
+		widths[i] = faces[i].width;
+		heights[i] = faces[i].height;
+		rawdata[i] = faces[i].image;
+		ishdr[i] = faces[i].ishdr;
+	}
+	skybox.loadSkybox(widths, heights, rawdata, ishdr);
 }
 
 AssetsManager::AssetsManager() {
 
 }
 
-void AssetsManager::loadAsset(AssetType type, const std::string& path, const std::string& ref) {
-	switch (type) {
-	case AssetType::STATIC_SPRITE:
-		loadStaticSprite(path, ref);
-		break;
-	}
+void AssetsManager::createStaticSkybox6(std::array<std::string, 6> paths, const std::string& ref) {
+	std::array<ImageData, 6> data{};
+	for (size_t i = 0; i < 6; i++) {
+		const std::string& path = paths[i];
+		std::string fullpath = gObject::gGetAssetsDir() + path;
+		bool ishdr = stbi_is_hdr(fullpath.c_str());
+		if (ishdr) {
+			data[i].image = stbi_loadf(fullpath.c_str(), &data[i].width, &data[i].height, &data[i].channels, 3);
+		} else {
+			data[i].image = stbi_load(fullpath.c_str(), &data[i].width, &data[i].height, &data[i].channels, 3);
+		}
 
+		if (!data[i].image) {
+			gLoge("AssetsManager") << "Failed to to load asset at " << path << " (" << fullpath << ")";
+			return;
+		}
+	}
+	assets[ref] = std::make_shared<SkyboxAsset>(std::move(data));
 }
 
-void AssetsManager::loadStaticSprite(const std::string& path, const std::string& ref) {
+void AssetsManager::createStaticSprite(const std::string& path, const std::string& ref) {
 	std::string fullpath = gObject::gGetAssetsDir() + path;
 	bool ishdr = stbi_is_hdr(fullpath.c_str());
 	void* data;
@@ -61,7 +86,7 @@ void AssetsManager::loadStaticSprite(const std::string& path, const std::string&
 		gLoge("AssetsManager") << "Failed to to load asset at " << path << " (" << fullpath << ")";
 		return;
 	}
-	assets[ref] = std::make_shared<SpriteAsset>(path, width, height, channels, ishdr, data);
+	assets[ref] = std::make_shared<SpriteAsset>(ImageData{width, height, channels, ishdr, data});
 }
 
 

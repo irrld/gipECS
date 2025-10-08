@@ -189,6 +189,9 @@ void Scene::draw(float deltatime) {
 		renderer->enableDepthTest();
 		renderer->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		component.begin(transform.position, transform.transformmatrix);
+		if (hasskybox) {
+			skybox.draw();
+		}
 		for (auto&& fn : systems[SystemType::DRAW3D]) {
 			fn(deltatime);
 		}
@@ -201,9 +204,6 @@ void Scene::draw(float deltatime) {
 	// Render to screen
 	renderer->bindDefaultFramebuffer();
 	renderer->clearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	for (auto&& fn : systems[SystemType::DRAW2D]) {
-		fn(deltatime);
-	}
 	for (entt::entity handle : it) {
 		CameraComponent& component = it.get<CameraComponent>(handle);
 		if (!component.isenabled) {
@@ -212,7 +212,17 @@ void Scene::draw(float deltatime) {
 		component.fbo.draw(0, 0, renderer->getWidth(), renderer->getHeight());
 		break;
 	}
+	for (auto&& fn : systems[SystemType::DRAW2D]) {
+		fn(deltatime);
+	}
+}
 
+void Scene::setSkybox(std::shared_ptr<AssetBase> asset) {
+	std::shared_ptr<SkyboxAsset> skyboxasset = std::reinterpret_pointer_cast<SkyboxAsset>(asset);
+	if (skyboxasset) {
+		skyboxasset->applyTo(skybox);
+		hasskybox = true;
+	}
 }
 
 bool Scene::onWindowResizeEvent(gWindowResizeEvent& event) {

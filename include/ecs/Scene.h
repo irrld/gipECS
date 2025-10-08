@@ -125,6 +125,8 @@ public:
 	void update(float deltatime);
 	void draw(float deltatime);
 
+	void setSkybox(std::shared_ptr<AssetBase> asset);
+
 private:
 	bool onWindowResizeEvent(gWindowResizeEvent& event);
 	glm::mat4 makeLocal(const TransformComponent& transform);
@@ -150,6 +152,9 @@ private:
 	std::vector<entt::entity> destroyqueue;
 
 	std::unordered_map<SystemType, std::vector<std::function<void(float)>>> systems;
+
+	gSkybox skybox;
+	bool hasskybox = false;
 };
 
 class SceneCanvas : public gBaseCanvas {
